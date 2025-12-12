@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RECS Data Hub - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+     <link rel="shortcut icon" href="./image.png" type="image/x-icon">
+
+    <style>
+        /* * This CSS snippet (which you identified) is the correct styling
+         * and does not contain any errors. It loads the font and styles
+         * the main cards and body.
+         */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            max-width: 420px;
+            width: 90%;
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="modal-container"></div>
+
+    <div id="option-card" class="card">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Welcome to RECS Student Profile Hub
+            
+        </h2>
+        <button onclick="showAdminLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg mb-4 transition duration-150 shadow-md hover:shadow-lg">
+            Admin Login
+        </button>
+        <button onclick="showStudentLogin()" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-150 shadow-md hover:shadow-lg">
+            Student Login
+        </button>
+    </div>
+
+    <div id="admin-card" class="card hidden">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Admin Login</h2>
+        <div class="mb-6">
+            <label for="admin-pass" class="block text-sm font-medium text-gray-700 mb-2">Passcode</label>
+            <input type="password" id="admin-pass" placeholder="Enter admin passcode" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" onkeydown="if(event.key === 'Enter') adminLogin()">
+        </div>
+        <button onclick="adminLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg mb-4 transition duration-150 shadow-md hover:shadow-lg">
+            Log In
+        </button>
+        <button onclick="goBack()" class="w-full text-gray-600 hover:text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-150">
+            ← Back
+        </button>
+    </div>
+
+    <div id="student-card" class="card hidden">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Student Login</h2>
+        <div class="mb-4">
+            <label for="enroll" class="block text-sm font-medium text-gray-700 mb-2">Enrollment/Roll No (e.g., 2023CSE001)</label>
+            <input type="text" id="enroll" placeholder="Enter Enrollment/Roll No" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+        </div>
+        <div class="mb-6">
+            <label for="std-pass" class="block text-sm font-medium text-gray-700 mb-2">Password (e.g., student123)</label>
+            <input type="password" id="std-pass" placeholder="Enter Password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" onkeydown="if(event.key === 'Enter') studentLogin()">
+        </div>
+        <button onclick="studentLogin()" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg mb-4 transition duration-150 shadow-md hover:shadow-lg">
+            Log In
+        </button>
+        <button onclick="goBack()" class="w-full text-gray-600 hover:text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-150">
+            ← Back
+        </button>
+        
+    </div>
+
+    <script>
+        // ----------------- Modal Functions (Replacing alert/prompt) -----------------
+        const modalContainer = document.getElementById('modal-container');
+
+        function showAlertModal(title, message, isStudentContext = false) {
+            return new Promise(resolve => {
+                const buttonColor = isStudentContext ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700';
+
+                const modalHtml = `
+                    <div id="alert-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
+                        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 transform transition-all">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-4">${title}</h3>
+                            <p class="text-gray-700 mb-6">${message}</p>
+                            <button id="alert-ok-btn" class="w-full ${buttonColor} text-white font-bold py-2 px-4 rounded-lg transition duration-150">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                `;
+                modalContainer.innerHTML = modalHtml;
+                document.getElementById('alert-ok-btn').onclick = () => {
+                    modalContainer.innerHTML = '';
+                    resolve();
+                };
+            });
+        }
+        // --- End Modal Functions ---
+
+        // Show admin login card
+        function showAdminLogin() {
+            document.getElementById('option-card').classList.add('hidden');
+            document.getElementById('admin-card').classList.remove('hidden');
+        }
+
+        // Show student login card
+        function showStudentLogin() {
+            document.getElementById('option-card').classList.add('hidden');
+            document.getElementById('student-card').classList.remove('hidden');
+        }
+
+        // Back button → return to main options
+        function goBack() {
+            document.getElementById('admin-card').classList.add('hidden');
+            document.getElementById('student-card').classList.add('hidden');
+            document.getElementById('option-card').classList.remove('hidden');
+        }
+
+        // Admin login logic
+        async function adminLogin() {
+            let pass = document.getElementById("admin-pass").value;
+            // The admin passcode is hardcoded as per the previous version
+            if (pass === "Arpit@123") {
+                window.location.href = "admin.html";
+            } else {
+                await showAlertModal("Login Failed", "Incorrect admin passcode!", false);
+            }
+        }
+
+        // Student login logic
+        async function studentLogin() {
+            let enroll = document.getElementById("enroll").value;
+            let pass = document.getElementById("std-pass").value;
+
+            // Simple validation check (password is hardcoded as 'student123')
+            if (enroll && pass === 'student123') {
+                // Store student ID in local storage for the student.html page to use
+                // This temporary key is the key to solving the profile loading error in student.html
+                localStorage.setItem("studentID", enroll.toUpperCase());
+                
+                // Redirect to the student profile page
+                window.location.href = "student.html";
+            } else {
+                await showAlertModal("Login Failed", "Please enter a valid Roll No and the correct password (student123).", true);
+            }
+        }
+    </script>
+
+</body>
+</html>

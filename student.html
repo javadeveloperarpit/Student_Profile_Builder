@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile</title>
+    <link rel="shortcut icon" href="./image.png" type="image/x-icon">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .profile-header { background-color: #1e40af; color: white; }
+        .nav-item.active { background-color: #bfdbfe; color: #1e40af; font-weight: 600; }
+        .card { background-color: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.1); }
+        .editable-field:hover { border: 1px dashed #3b82f6; cursor: pointer; }
+        .blocked-field { background-color: #fef2f2; color: #b91c1c; }
+        .scroll-area::-webkit-scrollbar { width: 8px; }
+        .scroll-area::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<script>
+    // ----------------- Firebase Config -----------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyDBTkq-sKkAYliARtfd_qYxkTCX3ZysR44",
+        authDomain: "project-3da0f.firebaseapp.com",
+        projectId: "project-3da0f",
+        storageBucket: "project-3da0f.firebasestorage.app",
+        messagingSenderId: "497516984492",
+        appId: "1:497516984492:web:cbac360dc7029b64a50709",
+        measurementId: "G-W1GQXP0RE5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    
+    const appId = "default-recs-app-id"; 
+    
+    const getCollectionPath = () => {
+        return `artifacts/${appId}/public/data/recs_student_profiles`;
+    };
+
+    let STUDENT_DATA = null;
+    let isAuthenticated = false;
+    let currentTab = 'Academics';
+
+    // ----------------- Firestore Load/Update -----------------
+    async function loadStudentData(rollNo) {
+        
+        try {
+            const docRef = db.collection(getCollectionPath()).doc(rollNo);
+            const docSnap = await docRef.get();
+            if (docSnap.exists) {
+                const data = docSnap.data();
+                
+                // Get existing background or new empty object
+                const background = data.background || {}; 
+
+                const academicJourney = (data.academics || []).map(acad => ({
+                    year: background.year12th ? (background.year12th + Math.ceil(acad.semester / 2)) : acad.semester,
+                    title: `Semester ${acad.semester} Complete`,
+                    details: `SPI: ${acad.spi} | Backlogs: ${acad.backlogs} | ${acad.description || ''}`,
+                }));
+
+                const defaultData = {
+                    name: data.name || "Unknown Student",
+                    program: data.branch || "N/A",
+                    rollNo: rollNo,
+                    cgpa: data.cgpa || 0.0,
+                    skills: data.skills || [],
+                    extraCurricular: data.extraCurricular || [],
+                    mentoringNotes: data.notes || "No notes available.", 
+                    certifications: data.certificates || [], 
+                    academicJourney: academicJourney, 
+                    
+                    // Direct access to background info for display 
+                    admissionRank: background.admissionRank || 'N/A',
+                    twelfthScore: background.board12th || 'N/A',
+                    tenthScore: background.board10th || 'N/A', // 👈 NEW FIELD MAPPED
+                    
+                    // The raw background object for updating
+                    background: background 
+                };
+                
+                STUDENT_DATA = { ...defaultData, ...data };
+                return true; 
+            } else {
+                return false;
+            }
+        } catch (err) {
+            console.error("Firestore load error:", err);
+            return false;
+        }
+    }
+
+    async function updateStudentData() {
+        if (!STUDENT_DATA || !STUDENT_DATA.rollNo) return;
+        try {
+            
+            await db.collection(getCollectionPath()).doc(STUDENT_DATA.rollNo).set({
+                skills: STUDENT_DATA.skills,
+                extraCurricular: STUDENT_DATA.extraCurricular,
+                certificates: STUDENT_DATA.certifications,
+                background: STUDENT_DATA.background // 👈 background object now merged
+            }, { merge: true });
+        } catch (err) {
+            console.error("Firestore update error:", err);
+        }
+    }
+
+    // ----------------- App Rendering -----------------
+    function renderApp() {
+        const container = document.getElementById('app-container');
+        container.innerHTML = '';
+        if (!isAuthenticated || !STUDENT_DATA) renderLogin(container);
+        else renderProfile(container);
+        updateIcons();
+    }
+
+    function renderLogin(container) {
+        container.className = 'flex items-center justify-center min-h-screen p-4';
+        container.innerHTML = `
+            <div class="card p-8 w-full max-w-md rounded-xl">
+                <h2 class="text-3xl font-bold text-center text-blue-700 mb-6">Student Login</h2>
+                <div id="login-message" class="mb-4 text-sm text-red-600 font-medium hidden"></div>
+                <label>Roll Number</label>
+                <input id="rollNo" class="w-full px-4 py-2 border rounded-lg mb-4" placeholder="2023CSE001">
+                <label>Password</label>
+                <input id="password" type="password" class="w-full px-4 py-2 border rounded-lg mb-6" placeholder="password">
+                <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">Login</button>
+            </div>
+        `;
+        document.getElementById('login-btn').addEventListener('click', handleLogin);
+        // Pre-fill login field with the last known Roll No for convenience
+        document.getElementById('rollNo').value = localStorage.getItem('lastRollNo') || ''; 
+    }
+
+    async function handleLogin() {
+        const roll = document.getElementById('rollNo').value.trim().toUpperCase();
+        const pwd = document.getElementById('password').value.trim();
+        const msg = document.getElementById('login-message');
+        
+        
+        if (pwd !== 'student123') { 
+            msg.textContent = 'Invalid Password.';
+            msg.classList.remove('hidden');
+            return;
+        }
+
+        
+        const success = await loadStudentData(roll);
+
+        if (success) {
+            isAuthenticated = true;
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('lastRollNo', roll); // Set persistent session key
+            msg.classList.add('hidden');
+            renderApp();
+        } else {
+          
+            msg.textContent = `Student with Roll No. ${roll} not found.`;
+            msg.classList.remove('hidden');
+        }
+    }
+
+    function handleLogout() {
+        isAuthenticated = false;
+        STUDENT_DATA = null; 
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('lastRollNo'); 
+        localStorage.removeItem('studentID'); // Clean up all session keys
+        currentTab = 'Academics';
+        renderApp();
+    }
+
+    function renderProfile(container) {
+        
+        if (!STUDENT_DATA) return handleLogout();
+
+        container.className = 'p-8';
+        container.innerHTML = `
+            <div class="profile-header p-4 rounded-t-xl flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-white text-blue-700 font-bold flex items-center justify-center rounded-full mr-4 text-lg">
+                        ${STUDENT_DATA.name.split(' ').map(n=>n[0]).join('')}
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">${STUDENT_DATA.name}</h1>
+                        <p class="text-sm opacity-90">${STUDENT_DATA.program || 'N/A'} &bull; Roll No: <span>${STUDENT_DATA.rollNo}</span></p>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="text-white p-2 rounded-full hover:opacity-80">
+                    <i data-lucide="log-out" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="bg-white p-4 card rounded-b-xl mb-6">
+                <div class="flex flex-wrap border-b border-gray-200">
+                    ${renderTab('Academics','graduation-cap')}
+                    ${renderTab('Skills, Courses & Certs','award')} ${renderTab('Journey Roadmap','route')}
+                    ${renderTab('Extra-Curricular','swimming-pool')}
+                    ${renderTab('Mentoring Notes','notebook-text')}
+            </div>
+            </div>
+
+            <div id="content-area" class="card p-6 rounded-xl scroll-area overflow-y-auto max-h-[70vh]">
+                ${renderContent()}
+            </div>
+        `;
+        document.querySelectorAll('.nav-item').forEach(item=>{
+            item.addEventListener('click',()=>{
+                currentTab=item.getAttribute('data-tab');
+                document.getElementById('content-area').innerHTML=renderContent();
+                updateIcons();
+            
+                renderProfile(container); 
+            });
+        });
+        updateIcons();
+    }
+
+    function renderTab(name,icon){
+        const active = currentTab===name?'active':'text-gray-600 hover:bg-gray-100';
+        return `<button data-tab="${name}" class="nav-item flex items-center px-4 py-2 mr-2 mb-2 rounded-lg ${active}">
+            <i data-lucide="${icon}" class="w-4 h-4 mr-2"></i>${name}
+        </button>`;
+    }
+
+    function renderContent(){
+        if (!STUDENT_DATA) return 'Data not loaded.';
+        switch(currentTab){
+            case 'Academics': return renderAcademics();
+            case 'Skills, Courses & Certs': return renderSkillsCerts(); // UPDATED CASE NAME
+            case 'Journey Roadmap': return renderJourneyRoadmap();
+            case 'Extra-Curricular': return renderExtraCurricular();
+            case 'Mentoring Notes': return renderMentoringNotes();
+            default: return '';
+        }
+    }
+
+    // --- Data Rendering Functions ---
+
+    // MODIFIED renderStatCard to support click handler
+    function renderStatCard(label, value, cls = '', valCls = '', tooltip = '', onClickHandler = '') {
+        const isClickable = onClickHandler ? 'cursor-pointer' : '';
+        const clickAttr = onClickHandler ? `onclick="${onClickHandler}"` : '';
+        // Ensure editable fields are visually distinct
+        const finalCls = cls.includes('editable-field') ? 'editable-field' : cls;
+
+        return `<div class="card p-4 rounded-lg ${finalCls} ${isClickable}" ${clickAttr}>
+            <p class="text-sm text-gray-500">${label}</p>
+            <p class="text-3xl font-extrabold mt-1 ${valCls}">${value}</p>
+            <p class="text-xs mt-2 text-gray-400">${tooltip}</p>
+        </div>`;
+    }
+
+
+    function renderAcademics(){
+        const cgpa = STUDENT_DATA.cgpa ? STUDENT_DATA.cgpa.toFixed(1) : 'N/A';
+        const academics = STUDENT_DATA.academics || [];
+        const totalBacklogs = academics.reduce((sum, acad) => sum + (acad.backlogs || 0), 0);
+        
+        return `
+            <h2 class="text-2xl font-semibold mb-6">Academic Summary & Background</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                ${renderStatCard('Overall CGPA', cgpa, 'blocked-field','text-blue-600','Admin Controlled')}
+                
+                ${renderStatCard(
+                    '12th Score/Percentage', 
+                    STUDENT_DATA.twelfthScore, 
+                    'editable-field',
+                    'text-green-600', 
+                    'Click to Edit', 
+                    `editBackgroundDetail('board12th', '12th Score/Percentage', '${STUDENT_DATA.twelfthScore}')`
+                )}
+                
+                ${renderStatCard(
+                    '10th Score/Percentage', 
+                    STUDENT_DATA.tenthScore, 
+                    'editable-field',
+                    'text-green-600', 
+                    'Click to Edit', 
+                    `editBackgroundDetail('board10th', '10th Score/Percentage', '${STUDENT_DATA.tenthScore}')`
+                )}
+
+                ${renderStatCard('Admission Rank', STUDENT_DATA.admissionRank || 'N/A', 'blocked-field','text-red-600','Admin Controlled')}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                 ${renderStatCard('Total Backlogs', totalBacklogs, 'blocked-field', totalBacklogs > 0 ? 'text-red-600' : 'text-green-600', 'Admin Controlled')}
+            </div>
+            
+            <h3 class="text-xl font-semibold mb-4">Semester Performance (Latest First)</h3>
+            
+            ${academics.sort((a, b) => b.semester - a.semester).map(acad => `
+                <div class="border p-4 rounded-lg mb-4">
+                    <div class="flex justify-between items-center mb-3 border-b pb-2">
+                        <h4 class="font-bold">Semester ${acad.semester}</h4>
+                        <div class="flex space-x-4">
+                            <span class="text-green-600 font-bold">SPI: ${acad.spi || 'N/A'}</span>
+                            <span class="${acad.backlogs > 0 ? 'text-red-600' : 'text-gray-500'} font-bold">Backlogs: ${acad.backlogs || 0}</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 italic mb-3">${acad.description || 'No detailed description provided.'}</p>
+                    
+                    ${acad.subjectMarks && acad.subjectMarks.length > 0 ? `
+                        <div class="space-y-1">
+                            ${acad.subjectMarks.map(subject => `
+                                <div class="flex justify-between py-1 px-3 bg-gray-50 rounded-md blocked-field text-sm">
+                                    <span>${subject.subject}</span>
+                                    <span class="${subject.marks < 50 ? 'text-red-600' : 'text-gray-800'}">${subject.marks}/100</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p class="text-center text-gray-500 text-sm mt-2">No detailed subject marks available.</p>'}
+                </div>
+            `).join('')}
+
+            ${academics.length === 0 ? '<div class="text-center text-gray-500 p-4 border border-dashed rounded-lg">No academic data entered yet.</div>' : ''}
+        `;
+    }
+
+    function renderSkillsCerts(){
+        
+        const skills = STUDENT_DATA.skills || [];
+        const certifications = STUDENT_DATA.certifications || [];
+
+        return `
+            <h2 class="text-2xl font-semibold mb-6">Technical Skills</h2>
+            <div id="skills-list" class="flex flex-wrap gap-2 p-4 card rounded-lg editable-field" onclick="editSkills()">
+                ${skills.map(s=>`<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">${s}</span>`).join('')}
+                <span class="text-gray-400 px-3 py-1">Click to Edit/Add Skills</span>
+            </div>
+
+            <h2 class="text-2xl font-semibold mb-6">External Courses & Certifications</h2> <div id="certs-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${certifications.map((cert,i)=>`
+                    <div class="card rounded-lg border editable-field" onclick="editCert(${i})">
+                        <div class="bg-green-500 text-white p-6 h-32 flex items-center justify-center">
+                            <a href="${cert.url}" target="_blank" class="font-bold hover:underline">${cert.title}</a>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-sm text-gray-500 mb-2">Title:</p>
+                            <p class="font-semibold">${cert.title}</p>
+                            <a href="${cert.url}" target="_blank" class="text-blue-500 text-sm hover:underline mt-2 inline-flex items-center">
+                                View <i data-lucide="external-link" class="w-3 h-3 ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                `).join('')}
+                <div class="card p-4 rounded-lg border-2 border-dashed flex items-center justify-center cursor-pointer" onclick="addCert()">
+                    <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Add Course/Certification </div>
+            </div>
+        `;
+    }
+
+    function renderJourneyRoadmap(){
+        const academicJourney = STUDENT_DATA.academicJourney || [];
+        return `
+            <h2 class="text-2xl font-semibold mb-6">Academic Journey</h2>
+            <div class="relative pl-6">
+                <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-300"></div>
+                ${academicJourney.map(item=>`
+                    <div class="mb-8 relative blocked-field p-3 rounded-lg bg-gray-50">
+                        <div class="absolute -left-1.5 w-3 h-3 bg-blue-600 rounded-full mt-2"></div>
+                        <p class="text-sm font-bold text-blue-600">${item.year}</p>
+                        <h3 class="text-lg font-semibold">${item.title}</h3>
+                        <p class="text-sm text-gray-600">${item.details}</p>
+                        <p class="text-xs mt-2 text-red-500">Admin Read-Only</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function renderExtraCurricular(){
+        const extraCurricular = STUDENT_DATA.extraCurricular || [];
+        return `
+            <h2 class="text-2xl font-semibold mb-6">Extra-Curricular Activities</h2>
+            <div class="card p-6 rounded-lg editable-field" onclick="editExtraCurricular()">
+                <ul class="list-disc ml-6 space-y-2">${extraCurricular.map(a=>`<li>${a}</li>`).join('')}</ul>
+                <p class="text-sm text-gray-400 mt-2">Click to edit</p>
+            </div>
+        `;
+    }
+
+    function renderMentoringNotes(){
+        const mentoringNotes = STUDENT_DATA.mentoringNotes || 'No official notes have been entered by the faculty.';
+        return `
+            <h2 class="text-2xl font-semibold text-red-700 mb-6">Faculty Mentoring Notes</h2>
+            <div class="card p-6 rounded-lg blocked-field border-2 border-red-300">
+                <textarea class="w-full h-40 p-3 rounded-lg bg-red-50 text-red-900 resize-none cursor-not-allowed" readonly>${mentoringNotes}</textarea>
+                <p class="text-xs text-red-500 mt-2">Read-Only</p>
+            </div>
+        `;
+    }
+    
+
+    // ----------------- Editable Functions -----------------
+
+    // NEW FUNCTION for editing 10th/12th scores
+    async function editBackgroundDetail(key, label, currentValue) {
+        if (!STUDENT_DATA.background) STUDENT_DATA.background = {};
+        
+        const val = prompt(`Enter new ${label} (e.g., 90% or 9.0 CGPA):`, currentValue);
+        if (val !== null) {
+            STUDENT_DATA.background[key] = val.trim();
+            
+            // Also update the top-level fields used for display in renderAcademics
+            if (key === 'board10th') STUDENT_DATA.tenthScore = val.trim();
+            if (key === 'board12th') STUDENT_DATA.twelfthScore = val.trim();
+            
+            await updateStudentData();
+            document.getElementById('content-area').innerHTML = renderContent();
+            updateIcons();
+        }
+    }
+
+
+    async function editSkills(){
+        if (!STUDENT_DATA) return;
+        const currentSkills = STUDENT_DATA.skills ? STUDENT_DATA.skills.join(', ') : '';
+        const val=prompt("Edit skills (comma separated):", currentSkills);
+        if(val!==null){
+            STUDENT_DATA.skills=val.split(',').map(s=>s.trim()).filter(s=>s);
+            await updateStudentData();
+            document.getElementById('content-area').innerHTML=renderContent();
+            updateIcons();
+        }
+    }
+
+    async function editExtraCurricular(){
+        if (!STUDENT_DATA) return;
+        const currentEC = STUDENT_DATA.extraCurricular ? STUDENT_DATA.extraCurricular.join(';') : '';
+        const val=prompt("Edit extra-curricular (semicolon separated):", currentEC);
+        if(val!==null){
+            STUDENT_DATA.extraCurricular=val.split(';').map(s=>s.trim()).filter(s=>s);
+            await updateStudentData();
+            document.getElementById('content-area').innerHTML=renderContent();
+            updateIcons();
+        }
+    }
+
+    async function editCert(index){
+        if (!STUDENT_DATA || !STUDENT_DATA.certificates || index >= STUDENT_DATA.certificates.length) return;
+        const cert=STUDENT_DATA.certificates[index];
+        const newTitle=prompt("Edit Course/Certification Title:",cert.title); // UPDATED PROMPT
+        const newSrc=prompt("Edit Source URL (Link to Certificate/Marksheet):",cert.url); // UPDATED PROMPT
+        if(newTitle && newSrc){
+            cert.title=newTitle.trim();
+            cert.url=newSrc.trim();
+            await updateStudentData();
+            document.getElementById('content-area').innerHTML=renderContent();
+            updateIcons();
+        }
+    }
+
+    async function addCert(){
+        if (!STUDENT_DATA) return;
+        const title=prompt("Enter Course/Certification Title:"); // UPDATED PROMPT
+        const source=prompt("Enter Course/Certification URL (Link to Certificate/Marksheet):"); // UPDATED PROMPT
+        if(title && source){
+            if (!STUDENT_DATA.certificates) STUDENT_DATA.certificates = [];
+            STUDENT_DATA.certificates.push({title:title.trim(),url:source.trim()});
+            await updateStudentData();
+            document.getElementById('content-area').innerHTML=renderContent();
+            updateIcons();
+        }
+    }
+
+    // ----------------- Utility -----------------
+    function updateIcons(){ lucide.createIcons(); }
+
+    // --- START OF FIXED LOGIC (The actual solution to your reported profile loading issue) ---
+    document.addEventListener('DOMContentLoaded', async ()=>{
+        const appContainer=document.createElement('div');
+        appContainer.id='app-container';
+        document.body.appendChild(appContainer);
+
+        // 1. Get the Roll No passed from the login page (index.html)
+        const newRollNo = localStorage.getItem('studentID'); 
+        
+        // 2. Get the previously saved session Roll No
+        const sessionRollNo = localStorage.getItem('lastRollNo');
+
+        // 3. Determine which Roll No to load: Prioritize the new one.
+        let rollToLoad = newRollNo || sessionRollNo;
+
+        // 4. IMPORTANT: Clear the temporary key. It's only for the initial navigation.
+        localStorage.removeItem('studentID'); 
+        
+        if (rollToLoad) {
+            const success = await loadStudentData(rollToLoad);
+            if (success) {
+                isAuthenticated = true;
+                localStorage.setItem('isAuthenticated', 'true');
+                // Crucial: Set/update the persistent key to the one successfully loaded (new or session)
+                localStorage.setItem('lastRollNo', rollToLoad); 
+            } else {
+                // If the data load failed, clear session info
+                handleLogout();
+            }
+        }
+        
+        renderApp();
+    });
+    // --- END OF FIXED LOGIC ---
+</script>
+</body>
+</html>

@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RECS Student Profile</title>
+    <link rel="shortcut icon" href="./image.png" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+      #student_data {
+        font-family: "Inter", sans-serif;
+        z-index: -1;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8fafc; /* Slate 50 */
+      }
+      /* Custom styles for the roadmap timeline */
+      .roadmap-container {
+        position: relative;
+        padding-left: 20px;
+      }
+      .roadmap-item {
+        position: relative;
+        padding-bottom: 25px;
+        padding-left: 30px;
+        border-left: 2px solid #3b82f6;
+      }
+      .roadmap-item:last-child {
+        border-left: none;
+        padding-bottom: 0;
+      }
+      .roadmap-dot {
+        position: absolute;
+        left: -8px;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #3b82f6;
+        border: 3px solid #f8fafc;
+        box-shadow: 0 0 0 3px #3b82f640;
+      }
+      .roadmap-dot.major {
+        background-color: #ef4444;
+        border: 3px solid #f8fafc;
+        box-shadow: 0 0 0 4px #ef444440;
+      }
+      #header{
+        background: linear-gradient(90deg, #020024, #3f4cff 70%, #00aad2 150%);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div id="app" class="relative">
+      <header id="header" class="text-white p-4 shadow-xl sticky top-0 z-20">
+        <div
+          class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center"
+        >
+          <div class="flex items-center space-x-3 mb-2 sm:mb-0">
+            <img src="./image.png"  width="5%" alt="">
+            <h1 class="text-2xl font-extrabold tracking-tight">
+              RECS Student Profile Data Hub
+            </h1>
+          </div>
+          <div id="auth-status" class="text-sm text-blue-200">
+            Authentication Status:
+            <span
+              id="user-id-display"
+              class="font-mono bg-blue-700 p-1 rounded-sm text-xs"
+              >Loading...</span
+            >
+          </div>
+          <button
+            onclick="window.location.href = 'index.html';"
+            class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 shadow-md mt-2 sm:mt-0"
+          >
+            Logout
+          </button>
+        </div>
+        
+      </header>
+
+      <div class="max-w-7xl mx-auto p-4 pt-8">
+        <div
+          class="bg-indigo-50 p-6 rounded-xl shadow-lg mb-8 border border-indigo-200"
+        >
+          <h2 class="text-2xl font-bold text-indigo-800 mb-4 flex items-center">
+            <svg
+              class="w-6 h-6 mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="17" y1="11" x2="17" y2="17" />
+              <line x1="17" y1="17" x2="23" y2="17" />
+              <line x1="20" y1="14" x2="14" y2="14" />
+            </svg>
+            Add New Student Profile
+          </h2>
+          <div
+            id="add-student-form"
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4"
+          >
+            <input
+              type="text"
+              id="new-roll-no"
+              placeholder="Roll No (e.g. 2023CSE001)"
+              class="md:col-span-2 p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+              required
+            />
+
+            <input
+              type="text"
+              id="new-name"
+              placeholder="Full Name"
+              class="md:col-span-2 p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+              required
+            />
+
+            <select
+              id="new-branch"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm"
+              required
+            >
+              <option value="">Select Branch</option>
+              <option value="Computer Science & Engineering">
+                Computer Science & Engineering
+              </option>
+              <option value="Electrical Engineering">
+                Electrical Engineering
+              </option>
+              <option value="Electronics Engineering">
+                Electronics Engineering
+              </option>
+              <option value="Mining Engineering">Mining Engineering</option>
+            </select>
+
+            <select
+              id="new-year"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm"
+              required
+            >
+              <option value="">Select Year</option>
+              <option value="4">Final Year (4)</option>
+              <option value="3">Third Year (3)</option>
+              <option value="2">Second Year (2)</option>
+              <option value="1">First Year (1)</option>
+            </select>
+
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="10"
+              id="new-cgpa"
+              placeholder="CGPA (e.g. 8.5)"
+              class="p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+              required
+            />
+
+            <button
+              onclick="addNewStudent(event)"
+              class="md:col-span-1 p-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-300 shadow-md"
+            >
+              Add Student
+            </button>
+          </div>
+          <p
+            id="form-message"
+            class="mt-3 text-sm font-medium text-red-600 hidden"
+          ></p>
+        </div>
+
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">
+          Student Search and Analysis
+        </h2>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-white p-5 rounded-xl shadow-lg border border-gray-100"
+        >
+          <div class="md:col-span-2 relative">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search by Name or Roll Number..."
+              class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+            />
+            <svg
+              class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </div>
+
+          <select
+            id="branch-filter"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+          >
+            <option value="All">All Branches</option>
+            <option value="Computer Science & Engineering">
+              Computer Science & Engineering
+            </option>
+            <option value="Electrical Engineering">
+              Electrical Engineering
+            </option>
+            <option value="Electronics Engineering">
+              Electronics Engineering
+            </option>
+            <option value="Mining Engineering">Mining Engineering</option>
+          </select>
+
+          <select
+            id="year-filter"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+          >
+            <option value="All">All Years</option>
+            <option value="4">Final Year (4)</option>
+            <option value="3">Third Year (3)</option>
+            <option value="2">Second Year (2)</option>
+            <option value="1">First Year (1)</option>
+          </select>
+        </div>
+
+        <div
+          id="student-list"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          </div>
+
+        <div id="status-message" class="text-center p-10 hidden">
+          <div class="inline-block" id="loader">
+            <svg
+              class="w-10 h-10 text-blue-600 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            <p class="mt-3 text-lg font-medium text-gray-700">
+              Loading student data...
+            </p>
+          </div>
+          <p
+            id="empty-message"
+            class="text-xl text-gray-500 font-medium hidden"
+          >
+            No students found matching your criteria.
+            </p>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="profile-modal"
+      class="fixed inset-0 z-50 bg-black bg-opacity-70 flex justify-center items-center p-4 hidden"
+    >
+      <div
+        id="modal-content"
+        class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all duration-300"
+      >
+        </div>
+    </div>
+
+    <div
+      id="alert-modal"
+      class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center hidden"
+    >
+      <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
+        <h3 id="alert-title" class="text-xl font-bold mb-4 text-gray-800">
+          Alert
+        </h3>
+        <p id="alert-message" class="mb-6 text-gray-600"></p>
+        <div class="flex justify-end">
+          <button
+            onclick="closeAlertModal()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        signInWithCustomToken,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        collection,
+        query,
+        onSnapshot,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+      import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+      // Set Firebase debug level
+      // setLogLevel('Debug');
+
+      // --- Global Config Variables (FIXED CONFIG FALLBACK) ---
+      const appId =
+        typeof __app_id !== "undefined" ? __app_id : "default-recs-app-id";
+      const firebaseConfig =
+        typeof __firebase_config !== "undefined"
+          ? JSON.parse(__firebase_config)
+          : {
+            // Hardcoded configuration added here as the fallback
+            apiKey: "AIzaSyDBTkq-sKkAYliARtfd_qYxkTCX3ZysR44",
+            // authDomain: "project-3da0f.firebaseapp.com",
+            projectId: "project-3da0f",
+            storageBucket: "project-3da0f.firebasestorage.app",
+            messagingSenderId: "497516984492",
+            appId: "1:497516984492:web:cbac360dc7029b64a50709",
+            measurementId: "G-W1GQXP0RE5",
+          };
+      const initialAuthToken =
+        typeof __initial_auth_token !== "undefined"
+          ? __initial_auth_token
+          : null;
+
+      // --- Firebase Globals ---
+      let db;
+      let auth;
+      let userId = null;
+      let studentsData = [];
+      let isAuthReady = false;
+
+      // --- Branches List for dropdowns ---
+      const BRANCHES = [
+        "Computer Science & Engineering",
+        "Electrical Engineering",
+        "Electronics Engineering",
+        "Mining Engineering",
+      ];
+
+      // --- Mock Data Structure for Seeding ---
+      const MOCK_STUDENTS = [
+        {
+          rollNo: "2023CSE001",
+          name: "Aarav Sharma",
+          branch: "Computer Science & Engineering",
+          year: 4,
+          cgpa: 8.9,
+          contact: "aarav.sharma@recsonbhadra.ac.in",
+          photoUrl: "https://placehold.co/150x150/0000FF/FFFFFF?text=Aarav", // Existing Photo URL
+          background: {
+            admissionRank: "JEE 78450",
+            board12th: "CBSE, 92%",
+            school: "DPS Noida",
+            year10th: 2017,
+            year12th: 2019,
+          },
+          academics: [
+            {
+              semester: 1,
+              spi: 8.5,
+              backlogs: 0,
+              description:
+                "Solid start in foundational subjects, performing well above average.",
+              subjectMarks: [
+                { subject: "Calculus I (M-101)", marks: 88 },
+                { subject: "Engineering Physics", marks: 92 },
+                { subject: "Basic Electrical Engg.", marks: 75 },
+                { subject: "C Programming", marks: 85 },
+              ],
+            },
+            {
+              semester: 2,
+              spi: 8.8,
+              backlogs: 0,
+              description:
+                "Excellent performance, showing strength in core CS concepts.",
+              subjectMarks: [
+                { subject: "Calculus II (M-102)", marks: 89 },
+                { subject: "Data Structures", marks: 95 },
+                { subject: "Digital Logic Design", marks: 82 },
+                { subject: "Chemistry", marks: 90 },
+              ],
+            },
+            {
+              semester: 3,
+              spi: 9.1,
+              backlogs: 0,
+              description:
+                "Outstanding semester, especially in advanced algorithms and discrete math.",
+              subjectMarks: [
+                { subject: "Algorithms", marks: 98 },
+                { subject: "Discrete Mathematics", marks: 95 },
+                { subject: "OOP with Java", marks: 88 },
+                { subject: "Environmental Science", marks: 80 },
+              ],
+            },
+          ],
+          skills: ["Python", "React", "Cloud Computing (AWS)"],
+          certificates: [
+            {
+              title: "NPTEL: Data Science",
+              url: "https://placehold.co/400x300/10b981/ffffff?text=NPTEL+Data+Cert",
+            },
+          ],
+          extraCurricular: [
+            "CodeChef Chapter Head",
+            "Winner, State-level Hackathon (2024)",
+          ],
+          notes:
+            "Strong performer. Excellent problem-solving skills, suitable for placement track.",
+        },
+        {
+          rollNo: "2024EEE015",
+          name: "Priya Verma",
+          branch: "Electrical Engineering",
+          year: 3,
+          cgpa: 7.2,
+          contact: "priya.verma@recsonbhadra.ac.in",
+          photoUrl: "https://placehold.co/150x150/FF00AA/FFFFFF?text=Priya", // Existing Photo URL
+          background: {
+            admissionRank: "JEE 152300",
+            board12th: "CBSE, 85%",
+            school: "KV Varanasi",
+            year10th: 2018,
+            year12th: 2020,
+          },
+          academics: [
+            {
+              semester: 1,
+              spi: 6.8,
+              backlogs: 1,
+              description:
+                "Struggled with Circuits. Needs to focus on fundamental theory.",
+              subjectMarks: [
+                { subject: "Circuit Theory", marks: 55 },
+                { subject: "Basic Electronics", marks: 70 },
+                { subject: "Engineering Graphics", marks: 65 },
+                { subject: "Physics Lab", marks: 80 },
+              ],
+            },
+            {
+              semester: 2,
+              spi: 7.5,
+              backlogs: 0,
+              description:
+                "Improved significantly after clearing backlogs, good momentum now.",
+              subjectMarks: [
+                { subject: "Analog Electronics", marks: 78 },
+                { subject: "Power Systems I", marks: 72 },
+                { subject: "Signals & Systems", marks: 68 },
+                { subject: "Workshop", marks: 85 },
+              ],
+            },
+          ],
+          skills: ["Matlab", "Circuit Design", "Power Systems"],
+          certificates: [
+            {
+              title: "EdX: Power Electronics Basics",
+              url: "https://placehold.co/400x300/f59e0b/ffffff?text=EdX+Power+Cert",
+            },
+          ],
+          extraCurricular: [
+            "Literary Club Member",
+            "Volunteered for College TechFest",
+          ],
+          notes:
+            "Needs improvement in core theory subjects. SPI trending positively since Semester 2.",
+        },
+        {
+          rollNo: "2025MNE030",
+          name: "Rajesh Yadav",
+          branch: "Mining Engineering",
+          year: 2,
+          cgpa: 6.1,
+          contact: "rajesh.yadav@recsonbhadra.ac.in",
+          photoUrl: "https://placehold.co/150x150/00FF00/000000?text=Rajesh", // Existing Photo URL
+          background: {
+            admissionRank: "JEE 255000",
+            board12th: "UP Board, 75%",
+            school: "RS Inter College",
+            year10th: 2019,
+            year12th: 2021,
+          },
+          academics: [
+            {
+              semester: 1,
+              spi: 6.0,
+              backlogs: 2,
+              description:
+                "Needs intervention. Low scores in key Mining subjects led to two backlogs.",
+              subjectMarks: [
+                { subject: "Mining Geology", marks: 40 },
+                { subject: "Engineering Mechanics", marks: 45 },
+                { subject: "Fluid Mechanics", marks: 60 },
+                { subject: "Ecology", marks: 70 },
+              ],
+            },
+          ],
+          skills: ["Geology Basics", "Safety Protocols"],
+          certificates: [],
+          extraCurricular: ["NSS Volunteer"],
+          notes:
+            "Facing difficulties in core subjects. Needs mandatory faculty mentoring.",
+        },
+      ];
+
+      // --- Firestore Path Helper ---
+      const getCollectionPath = () => {
+        // Using the correct public path for shared faculty data
+        return collection(
+          db,
+          `artifacts/${appId}/public/data/recs_student_profiles`
+        );
+      };
+
+      // --- Alert Modal Functions ---
+      const showAlertModal = (title, message) => {
+        document.getElementById("alert-title").textContent = title;
+        document.getElementById("alert-message").textContent = message;
+        document.getElementById("alert-modal").classList.remove("hidden");
+        document.getElementById("alert-modal").classList.add("flex");
+      };
+
+      window.closeAlertModal = () => {
+        document.getElementById("alert-modal").classList.add("hidden");
+        document.getElementById("alert-modal").classList.remove("flex");
+      };
+
+      // --- Status/Loader Functions ---
+      const showStatus = (message, isLoader = true) => {
+        const statusDiv = document.getElementById("status-message");
+        const loaderDiv = document.getElementById("loader");
+        const emptyDiv = document.getElementById("empty-message");
+
+        statusDiv.classList.remove("hidden");
+        loaderDiv.classList.toggle("hidden", !isLoader);
+        emptyDiv.classList.add("hidden");
+
+        if (!isLoader) {
+          loaderDiv.classList.add("hidden");
+          emptyDiv.classList.remove("hidden");
+          emptyDiv.textContent = message;
+        } else {
+          loaderDiv.querySelector("p").textContent = message;
+        }
+      };
+
+      const hideStatus = () => {
+        document.getElementById("status-message").classList.add("hidden");
+      };
+
+      // --- Data Seeding Function (Run once to populate DB if empty) ---
+      const seedData = async () => {
+        if (!db) return;
+        try {
+          const collRef = getCollectionPath();
+          // 1. Check if the collection is empty
+          const existingDocs = await getDocs(collRef);
+
+          if (existingDocs.empty) {
+            console.log("Seeding mock student data...");
+            showStatus("Saving initial demo student data... Please wait", true);
+
+            // 2. Seed the data
+            for (const student of MOCK_STUDENTS) {
+              const docRef = doc(collRef, student.rollNo);
+              // Using setDoc with merge: true for safe updates
+              await setDoc(docRef, student, { merge: true });
+            }
+            console.log("Seeding complete.");
+            // The onSnapshot listener will be triggered next
+          } else {
+            console.log("Data already exists. Skipping seeding.");
+          }
+        } catch (e) {
+          console.error(
+            "Data Seeding Error (Likely Public Write Rule Denial):",
+            e
+          );
+          showAlertModal(
+            "Seeding Error",
+            "Failed to save initial demo data. Please check Firestore public write permissions."
+          );
+        }
+      };
+
+      // --- Add New Student Logic ---
+      const getNewStudentTemplate = (rollNo, name, branch, year, cgpa) => ({
+        rollNo: rollNo.toUpperCase(),
+        name: name,
+        branch: branch,
+        year: parseInt(year),
+        cgpa: parseFloat(cgpa),
+        contact: `[${rollNo.toLowerCase()}]@recsonbhadra.ac.in`,
+        // Initial Photo URL placeholder
+        photoUrl: `https://placehold.co/150x150/1e40af/FFFFFF?text=${
+          name.split(" ")[0]
+        }`,
+        background: {
+          admissionRank: "N/A",
+          board12th: "N/A",
+          school: "N/A",
+          year10th: 0,
+          year12th: 0,
+        },
+        academics: [
+          {
+            semester: 1,
+            spi: parseFloat(cgpa) || 0.0,
+            backlogs: 0,
+            description:
+              "Initial profile created by faculty. Detailed marks pending.",
+            subjectMarks: [],
+          },
+        ],
+        skills: [],
+        certificates: [],
+        extraCurricular: [],
+        notes: "Initial profile created by faculty.",
+      });
+
+      window.addNewStudent = async (event) => {
+        event.preventDefault(); // Prevent default form behavior if it were a full form
+
+        if (!db) {
+          showAlertModal(
+            "Error",
+            "Database not initialized. Cannot add student."
+          );
+          return;
+        }
+
+        const rollNoInput = document.getElementById("new-roll-no");
+        const nameInput = document.getElementById("new-name");
+        const branchInput = document.getElementById("new-branch");
+        const yearInput = document.getElementById("new-year");
+        const cgpaInput = document.getElementById("new-cgpa");
+        const formMessage = document.getElementById("form-message");
+
+        const rollNo = rollNoInput.value.trim();
+        const name = nameInput.value.trim();
+        const branch = branchInput.value;
+        const year = yearInput.value;
+        const cgpa = cgpaInput.value;
+
+        // Basic Validation
+        if (!rollNo || !name || !branch || !year || !cgpa) {
+          formMessage.textContent = "Please fill in all required fields.";
+          formMessage.classList.remove("hidden");
+          return;
+        }
+        if (
+          studentsData.some(
+            (s) => s.rollNo.toUpperCase() === rollNo.toUpperCase()
+          )
+        ) {
+          formMessage.textContent = `Student with Roll No ${rollNo} already exists.`;
+          formMessage.classList.remove("hidden");
+          return;
+        }
+        formMessage.classList.add("hidden");
+
+        const newStudent = getNewStudentTemplate(
+          rollNo,
+          name,
+          branch,
+          year,
+          cgpa
+        );
+        const docRef = doc(getCollectionPath(), newStudent.rollNo);
+
+        try {
+          await setDoc(docRef, newStudent);
+          showAlertModal(
+            "Success",
+            `${name} (${rollNo}) successfully added to the database.`
+          );
+
+          // Clear inputs after success
+          rollNoInput.value = "";
+          nameInput.value = "";
+          branchInput.value = "";
+          yearInput.value = "";
+          cgpaInput.value = "";
+        } catch (e) {
+          console.error("Error adding student: ", e);
+          showAlertModal(
+            "Error",
+            `Failed to add student. Check Firestore write permissions or console logs.`
+          );
+        }
+      };
+      
+      // --- Subject Input Helper Functions ---
+      // Adds a new row for subject name and marks
+      window.addSubjectInput = () => {
+          const container = document.getElementById("subject-marks-container");
+          const newRow = document.createElement('div');
+          newRow.className = "flex space-x-2";
+          newRow.innerHTML = `
+              <input type="text" placeholder="Subject Name" class="subject-name w-2/3 p-2 border rounded-md">
+              <input type="number" placeholder="Marks (0-100)" min="0" max="100" class="subject-mark w-1/3 p-2 border rounded-md">
+              <button onclick="removeSubjectInput(this)" class="p-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition">
+                  <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+          `;
+          container.appendChild(newRow);
+      };
+
+      // Removes a subject row
+      window.removeSubjectInput = (button) => {
+          // Traverse up to the div with class "flex space-x-2"
+          button.closest('.flex.space-x-2').remove();
+      };
+
+      // --- Update Database Utility Functions (MODIFIED/NEW) ---
+
+      // 1. General Field Update (for simple fields like CGPA, Notes, Year, photoUrl)
+      window.updateStudentField = async (rollNo, field, value) => {
+          if (!db) {
+              console.error("Database not initialized. Cannot save field.");
+              return;
+          }
+          const docRef = doc(getCollectionPath(), rollNo);
+          const updateData = {};
+          
+          // Convert numbers to actual number types for Firestore
+          if (field === 'cgpa') {
+              value = parseFloat(value) || 0; // Convert to float
+          } else if (field === 'year') {
+              value = parseInt(value) || 0; // Convert to integer
+          }
+          // The 'photoUrl' field remains a string.
+          
+          updateData[field] = value;
+
+          try {
+              await setDoc(docRef, updateData, { merge: true });
+              console.log(`${field} updated successfully for ${rollNo}`);
+          } catch (e) {
+              console.error(`Error updating ${field}: `, e);
+              showAlertModal(
+                  "Save Error",
+                  `Failed to update ${field}. Check console for details.`
+              );
+          }
+      };
+
+      // 2. Add a New Semester Record and recalculate CGPA
+      window.addNewSemester = async (rollNo) => {
+          if (!db) {
+              showAlertModal("Error", "Database not initialized.");
+              return;
+          }
+          
+          // 1. Fetch input values for the new semester form
+          const semesterInput = document.getElementById("new-semester-num");
+          const backlogsInput = document.getElementById("new-semester-backlogs");
+          const descriptionInput = document.getElementById("new-semester-desc");
+          const subjectNames = document.querySelectorAll("#subject-marks-container .subject-name");
+          const subjectMarksInputs = document.querySelectorAll("#subject-marks-container .subject-mark");
+          
+          const semester = parseInt(semesterInput.value);
+          const backlogs = parseInt(backlogsInput.value) || 0;
+          const description = descriptionInput.value.trim();
+          
+          const student = studentsData.find(s => s.rollNo === rollNo);
+          if (!student) return;
+
+          if (isNaN(semester) || semester < 1 || semester > 8) {
+              showAlertModal("Validation Error", "Please enter a valid Semester Number (1-8).");
+              return;
+          }
+
+          if (student.academics.some(a => a.semester === semester)) {
+              showAlertModal("Validation Error", `Semester ${semester} already exists.`);
+              return;
+          }
+
+          // 2. Process Subject Marks and Calculate SPI
+          const subjectMarks = [];
+          let totalMarks = 0;
+          let validSubjectCount = 0;
+
+          for(let i = 0; i < subjectNames.length; i++) {
+              const name = subjectNames[i].value.trim();
+              const mark = parseInt(subjectMarksInputs[i].value);
+
+              if (name && !isNaN(mark) && mark >= 0 && mark <= 100) {
+                  subjectMarks.push({ subject: name, marks: mark });
+                  totalMarks += mark;
+                  validSubjectCount++;
+              }
+          }
+          
+          if (validSubjectCount === 0) {
+              showAlertModal("Validation Error", "Please add at least one valid subject with marks (0-100).");
+              return;
+          }
+
+          // Simple SPI calculation: Average Marks (out of 100) / 10
+          const averageMark = totalMarks / validSubjectCount;
+          const calculatedSPI = parseFloat((averageMark / 10).toFixed(1));
+
+          const newAcademicRecord = {
+              semester: semester,
+              spi: calculatedSPI, // Calculated from marks
+              backlogs: backlogs,
+              description: description,
+              subjectMarks: subjectMarks,
+          };
+          
+          // 3. Update academics array and sort it
+          const updatedAcademics = [...student.academics, newAcademicRecord].sort((a, b) => a.semester - b.semester);
+
+          // 4. Recalculate CGPA (simple unweighted average of all SPIs)
+          const totalSPI = updatedAcademics.reduce((sum, item) => sum + item.spi, 0);
+          const newCGPA = totalSPI / updatedAcademics.length;
+
+          const docRef = doc(getCollectionPath(), rollNo);
+          try {
+              await setDoc(docRef, 
+                  { 
+                      academics: updatedAcademics,
+                      cgpa: parseFloat(newCGPA.toFixed(1))
+                  }, 
+                  { merge: true });
+              
+              showAlertModal("Success", `Semester ${semester} record saved (SPI: ${calculatedSPI}). CGPA updated for ${rollNo}.`);
+              
+              // Clear form and close modal
+              semesterInput.value = '';
+              backlogsInput.value = 0;
+              descriptionInput.value = '';
+              document.getElementById("subject-marks-container").innerHTML = ''; // Clear subject inputs
+              addSubjectInput(); // Re-add one empty input
+              document.getElementById("add-semester-details-form").classList.add("hidden");
+              
+              // Trigger re-render from listener by closing modal
+              document.getElementById("profile-modal").classList.add("hidden");
+
+          } catch (e) {
+              console.error("Error adding new semester: ", e);
+              showAlertModal("Save Error", "Failed to add new semester. Check console for details.");
+          }
+      };
+
+      // 4. Add a New Subject Mark to an Existing Semester
+      window.addNewSubjectMark = async (rollNo, semesterIndex) => {
+          const subjectName = prompt("Enter new subject name:");
+          if (!subjectName || subjectName.trim() === "") return;
+
+          const initialMark = prompt(`Enter marks (0-100) for ${subjectName}:`);
+          const mark = parseInt(initialMark);
+
+          if (isNaN(mark) || mark < 0 || mark > 100) {
+              showAlertModal("Validation Error", "Please enter a valid mark (0-100).");
+              return;
+          }
+
+          if (!db) {
+              console.error("Database not initialized. Cannot save mark.");
+              return;
+          }
+          
+          const student = studentsData.find(s => s.rollNo === rollNo);
+          if (!student) {
+              console.error("Student not found in cache.");
+              return;
+          }
+          
+          const updatedAcademics = JSON.parse(JSON.stringify(student.academics));
+          const semesterData = updatedAcademics[semesterIndex];
+          
+          if (!semesterData) {
+              console.error(`Semester index ${semesterIndex} not found.`);
+              return;
+          }
+
+          // Check for duplicate subject
+          if (semesterData.subjectMarks.some(s => s.subject.toLowerCase() === subjectName.trim().toLowerCase())) {
+              showAlertModal("Validation Error", `Subject "${subjectName}" already exists in this semester.`);
+              return;
+          }
+
+          // Add new subject
+          semesterData.subjectMarks.push({ subject: subjectName.trim(), marks: mark });
+
+          // Recalculate SPI for this semester
+          const totalMarks = semesterData.subjectMarks.reduce((sum, item) => sum + item.marks, 0);
+          const averageMark = totalMarks / semesterData.subjectMarks.length;
+          semesterData.spi = parseFloat((averageMark / 10).toFixed(1));
+          
+          // Recalculate overall CGPA
+          const totalSPI = updatedAcademics.reduce((sum, item) => sum + item.spi, 0);
+          const newCGPA = totalSPI / updatedAcademics.length;
+
+          const docRef = doc(getCollectionPath(), rollNo);
+          try {
+              await setDoc(docRef, 
+                  { 
+                      academics: updatedAcademics,
+                      cgpa: parseFloat(newCGPA.toFixed(1))
+                  }, 
+                  { merge: true });
+              
+              showAlertModal("Success", `Subject added, SPI recalculated to ${semesterData.spi}, and CGPA updated.`);
+              document.getElementById("profile-modal").classList.add("hidden"); // Force re-render
+
+          } catch (e) {
+              console.error("Error adding new subject mark: ", e);
+              showAlertModal("Save Error", "Failed to add new subject mark. Check console for details.");
+          }
+      };
+
+      // 3. Update a Specific Subject Mark, SPI, Backlogs, or Semester Description (Complex Nested Array Update)
+      // Note: subjectNameOrField can be the subject name, 'spi', 'backlogs', or 'description'.
+      // The value is the new value.
+      window.updateSubjectDetail = async (rollNo, semesterIndex, subjectNameOrField, value) => {
+          if (!db) {
+              console.error("Database not initialized. Cannot save mark.");
+              return;
+          }
+          
+          const student = studentsData.find(s => s.rollNo === rollNo);
+          if (!student) {
+              console.error("Student not found in cache.");
+              return;
+          }
+
+          // Use a deep copy to safely modify the array locally
+          const updatedAcademics = JSON.parse(JSON.stringify(student.academics));
+          const semesterData = updatedAcademics[semesterIndex];
+
+          if (!semesterData) {
+              console.error(`Semester index ${semesterIndex} not found.`);
+              return;
+          }
+          
+          let updateCgpa = false;
+          let updateData = {};
+          
+          // Check if this is a subject mark update (where subjectNameOrField is the subject name)
+          const subject = semesterData.subjectMarks.find(s => s.subject === subjectNameOrField);
+
+          if (subject) {
+              // This is a Subject Mark update
+              subject.marks = parseInt(value) || 0;
+              
+              // Recalculate SPI based on all subject marks in this semester
+              const totalMarks = semesterData.subjectMarks.reduce((sum, item) => sum + item.marks, 0);
+              const averageMark = totalMarks / semesterData.subjectMarks.length;
+              semesterData.spi = parseFloat((averageMark / 10).toFixed(1));
+              updateCgpa = true;
+
+          } else if (subjectNameOrField === 'spi') {
+              // This is an SPI update (manual override), triggers CGPA recalculation
+              semesterData.spi = parseFloat(value) || 0.0;
+              updateCgpa = true;
+          } else if (subjectNameOrField === 'backlogs') {
+              // This is a Backlogs update
+              semesterData.backlogs = parseInt(value) || 0;
+          } else if (subjectNameOrField === 'description') {
+              // This is a Description update
+              semesterData.description = value;
+          } else {
+              console.warn(`Unknown field/subject ${subjectNameOrField} for semester update.`);
+              return;
+          }
+
+          updateData.academics = updatedAcademics;
+
+          if (updateCgpa) {
+              // Recalculate CGPA (simple unweighted average of all SPIs)
+              const totalSPI = updatedAcademics.reduce((sum, item) => sum + item.spi, 0);
+              const newCGPA = totalSPI / updatedAcademics.length;
+              updateData.cgpa = parseFloat(newCGPA.toFixed(1));
+          }
+
+          const docRef = doc(getCollectionPath(), rollNo);
+          try {
+              await setDoc(docRef, updateData, { merge: true });
+              console.log(`Semester detail updated successfully for ${rollNo}`);
+
+              // Force modal close/re-open if CGPA was updated to reflect new value
+              if (updateCgpa) {
+                  document.getElementById("profile-modal").classList.add("hidden");
+              }
+          } catch (e) {
+              console.error(`Error updating semester detail: `, e);
+              showAlertModal("Save Error", "Failed to update semester detail. Check console for details.");
+          }
+      };
+
+
+      // --- Render Functions ---
+      const renderStudentCard = (student) => {
+        const card = document.createElement("div");
+        card.className =
+          "bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 cursor-pointer border-t-4 border-blue-600";
+        card.setAttribute("data-rollno", student.rollNo);
+
+        // Correct photo URL handling with error fallback
+        const profilePhotoHtml = student.photoUrl
+          ? `<img src="${student.photoUrl}" onerror="this.onerror=null; this.src='https://placehold.co/48x48/60a5fa/ffffff?text=P';" class="w-12 h-12 rounded-full object-cover ring-2 ring-blue-500"/>`
+          : `<svg class="w-12 h-12 text-blue-600 p-2 bg-blue-100 rounded-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+        card.innerHTML = `
+                <div class="flex items-center space-x-4 mb-4">
+                    ${profilePhotoHtml}
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900 truncate">${
+                          student.name
+                        }</h3>
+                        <p class="text-sm text-gray-500">Roll No: ${
+                          student.rollNo
+                        }</p>
+                    </div>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <p class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <span class="font-medium">${student.branch}</span>
+                    </p>
+                    <p class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.38a2 2 0 0 1 1.42.58L21 6.5l-1.5 1.5"/></svg>
+                        Year: <span class="ml-1 font-medium text-gray-800">${
+                          student.year
+                        }</span>
+                    </p>
+                    <p class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M18 20h.01"/><path d="M6 20h.01"/><path d="M12 12h.01"/><path d="M18 12h.01"/><path d="M6 12h.01"/><path d="M12 4h.01"/><path d="M18 4h.01"/><path d="M6 4h.01"/></svg>
+                        CGPA: <span class="ml-1 font-medium text-green-600">${student.cgpa.toFixed(
+                          1
+                        )}</span>
+                    </p>
+                </div>
+            `;
+
+        card.addEventListener("click", () => showProfileModal(student));
+        return card;
+      };
+
+      const renderStudentList = (filteredStudents) => {
+        const listContainer = document.getElementById("student-list");
+        listContainer.innerHTML = "";
+
+        if (filteredStudents.length === 0) {
+          showStatus("No students found matching your criteria.", false);
+          return;
+        }
+
+        hideStatus();
+        filteredStudents.forEach((student) => {
+          listContainer.appendChild(renderStudentCard(student));
+        });
+      };
+
+      const showProfileModal = (student) => {
+        const modal = document.getElementById("profile-modal");
+        const content = document.getElementById("modal-content");
+
+        const tabData = [
+          {
+            id: "academic",
+            label: "Academics",
+            icon: `<svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M18 20h.01"/><path d="M6 20h.01"/><path d="M12 12h.01"/><path d="M18 12h.01"/><path d="M6 12h.01"/><path d="M12 4h.01"/><path d="M18 4h.01"/><path d="M6 4h.01"/></svg>`,
+          },
+          {
+            id: "skills",
+            label: "Skills & Certs",
+            icon: `<svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V3"/><path d="M12 21l-4-4h8l-4 4z"/></svg>`,
+          },
+          {
+            id: "roadmap",
+            label: "Journey Roadmap",
+            icon: `<svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.73 2.73L3 7.5M3 3v4.5h4.5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.73-2.73L21 16.5M21 21v-4.5h-4.5"/></svg>`,
+          },
+          {
+            id: "extra",
+            label: "Extra-Curricular",
+            icon: `<svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17s.6 1.7 1 2.5 1.7.6 2.5 1 2.5-1 3-2.5s.5-3 .5-4.5"/><path d="M20 7s-.6-1.7-1-2.5-1.7-.6-2.5-1-2.5 1-3 2.5s-.5 3-.5 4.5"/><path d="M12 12L7 17l-1-1 5-5"/><path d="M12 12L17 7l1-1-5 5"/></svg>`,
+          },
+          {
+            id: "notes",
+            label: "Mentoring Notes",
+            icon: `<svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9.67l.2-.29A8 8 0 1 1 18 19.88"/><path d="M18 18v2h-2"/><path d="M19 19v1h2"/></svg>`,
+          },
+        ];
+
+        const renderTabContent = (tabId) => {
+          let html = "";
+          switch (tabId) {
+            case "academic":
+              // --- Academic Tab Content (MODIFIED FOR PHOTO URL EDITING) ---
+              html = `
+                            <h3 class="text-xl font-semibold text-blue-700 mb-3 border-b pb-2">Academic Summary</h3>
+
+                            <div class="bg-yellow-50 p-4 rounded-lg shadow-inner mb-6 border border-yellow-200 flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <img src="${student.photoUrl || 'https://placehold.co/100x100/CCCCCC/333333?text=No+Photo'}" 
+                                         onerror="this.onerror=null; this.src='https://placehold.co/100x100/CCCCCC/333333?text=Invalid+URL';"
+                                         id="current-photo-preview"
+                                         class="w-24 h-24 rounded-full object-cover shadow-md ring-2 ring-yellow-400"
+                                         alt="Student Photo Preview"
+                                    />
+                                </div>
+                                <div class="flex-grow">
+                                    <p class="text-sm text-yellow-800 font-medium mb-2">Profile Photo URL (Paste Link to Image)</p>
+                                    <input 
+                                        type="url" 
+                                        value="${student.photoUrl || ''}" 
+                                        id="edit-photo-url"
+                                        placeholder="Paste a public image URL here (e.g., https://.../image.jpg)"
+                                        onblur="updateStudentField('${student.rollNo}', 'photoUrl', this.value); document.getElementById('current-photo-preview').src = this.value || 'https://placehold.co/100x100/CCCCCC/333333?text=No+Photo';"
+                                        class="w-full p-2 border border-yellow-300 rounded-md text-sm focus:ring-yellow-500 focus:border-yellow-500 transition"
+                                    />
+                                    <p class="text-xs text-yellow-700 mt-1">Updates immediately on blur. Use a direct image URL.</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div class="bg-blue-50 p-4 rounded-lg shadow-inner">
+                                    <p class="text-sm text-blue-700 font-medium">Overall CGPA (Editable)</p>
+                                    <input 
+                                        type="number" 
+                                        step="0.1" 
+                                        min="0" 
+                                        max="10" 
+                                        value="${student.cgpa.toFixed(1)}" 
+                                        id="edit-cgpa"
+                                        onblur="updateStudentField('${student.rollNo}', 'cgpa', this.value)"
+                                        class="text-3xl font-bold text-blue-900 w-full bg-transparent border-none p-0 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                                    />
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                                    <p class="text-sm text-gray-700 font-medium">Admission Rank</p>
+                                    <p class="text-lg font-bold text-gray-800">${
+                                      student.background.admissionRank || "N/A"
+                                    }</p>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                                    <p class="text-sm text-gray-700 font-medium">12th Score</p>
+                                    <p class="text-lg font-bold text-gray-800">${
+                                      student.background.board12th || "N/A"
+                                    }</p>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-indigo-700 mt-6 mb-3 border-b pb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+                                Add New Semester Record
+                            </h3>
+                            <button 
+                                onclick="document.getElementById('add-semester-details-form').classList.toggle('hidden'); if(document.getElementById('subject-marks-container').children.length === 0) addSubjectInput();"
+                                class="w-full p-2 mb-4 bg-indigo-500 text-white font-semibold rounded-md hover:bg-indigo-600 transition"
+                            >
+                                Toggle New Semester Form (Add Subject Marks & Calculate SPI/CGPA)
+                            </button>
+                            
+                            <div id="add-semester-details-form" class="bg-indigo-50 p-4 rounded-lg shadow-md mb-6 hidden">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                                    <input type="number" id="new-semester-num" placeholder="Sem No. (1-8)" min="1" max="8" class="col-span-1 p-2 border rounded-md" required>
+                                    <input type="number" id="new-semester-backlogs" placeholder="Backlogs (0)" min="0" class="col-span-1 p-2 border rounded-md" value="0">
+                                    <input type="text" id="new-semester-desc" placeholder="Brief Description" class="md:col-span-2 p-2 border rounded-md">
+                                </div>
+
+                                <h4 class="text-lg font-semibold text-indigo-800 mb-2 mt-4 border-t pt-3">Subject Marks (Enter Score / 100)</h4>
+                                <div id="subject-marks-container" class="space-y-2 mb-4">
+                                    </div>
+                                <button onclick="addSubjectInput()" class="p-2 mb-4 text-indigo-600 border border-indigo-600 rounded-md hover:bg-indigo-100 transition flex items-center">
+                                    <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    Add Subject
+                                </button>
+
+                                <button onclick="addNewSemester('${student.rollNo}')" class="w-full p-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition">
+                                    Calculate SPI & Save New Semester
+                                </button>
+                            </div>
+
+
+                            <h3 class="text-xl font-semibold text-blue-700 mt-6 mb-3 border-b pb-2">Semester Performance Details (Editable)</h3>
+                            
+                            ${student.academics
+                              .map((acad, index) => {
+                                // IMPORTANT: Use the actual index of the semester in the academics array
+                                const semesterIndex = student.academics.findIndex(a => a.semester === acad.semester);
+
+                                return `
+                                <div class="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-5">
+                                    <div class="flex justify-between items-center mb-3 border-b pb-2">
+                                        <h4 class="text-lg font-bold text-gray-800">Semester ${
+                                          acad.semester
+                                        }</h4>
+                                        <div class="flex space-x-4">
+                                            <span class="text-sm font-medium text-green-700">
+                                                SPI: 
+                                                <input 
+                                                    type="number" 
+                                                    step="0.1" 
+                                                    min="0"
+                                                    max="10"
+                                                    value="${acad.spi.toFixed(1)}" 
+                                                    onblur="updateSubjectDetail('${
+                                                      student.rollNo
+                                                    }', ${semesterIndex}, 'spi', this.value)"
+                                                    class="text-xl font-bold w-12 text-center border-b border-green-500 focus:border-green-700"
+                                                />
+                                            </span>
+                                            <span class="text-sm font-medium ${
+                                              acad.backlogs > 0
+                                                ? "text-red-600"
+                                                : "text-gray-500"
+                                            }">
+                                                Backlogs: 
+                                                <input 
+                                                    type="number" 
+                                                    min="0"
+                                                    value="${acad.backlogs}" 
+                                                    onblur="updateSubjectDetail('${
+                                                      student.rollNo
+                                                    }', ${semesterIndex}, 'backlogs', this.value)"
+                                                    class="text-base font-bold w-10 text-center border-b border-gray-400 focus:border-red-700"
+                                                />
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-sm text-gray-600 italic mb-4">
+                                        <textarea
+                                            class="w-full p-2 border border-gray-300 rounded-md text-sm focus:border-blue-500"
+                                            rows="2"
+                                            placeholder="Semester description (editable)..."
+                                            onblur="updateSubjectDetail('${
+                                              student.rollNo
+                                            }', ${semesterIndex}, 'description', this.value)"
+                                        >${
+                                          acad.description ||
+                                          "No detailed description provided."
+                                        }</textarea>
+                                    </div>
+
+                                    ${
+                                      acad.subjectMarks &&
+                                      acad.subjectMarks.length > 0
+                                        ? `
+                                        <h5 class="font-semibold text-gray-700 mb-2 mt-4">Subject-wise Marks (Edit):</h5>
+                                        <button 
+                                            onclick="addNewSubjectMark('${student.rollNo}', ${semesterIndex})" 
+                                            class="mb-3 px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition flex items-center"
+                                        >
+                                            <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Add Subject
+                                        </button>
+                                        <div class="overflow-x-auto">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject Name</th>
+                                                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Marks (100)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-200">
+                                                    ${acad.subjectMarks
+                                                      .map(
+                                                        (subject) => `
+                                                        <tr class="hover:bg-gray-50">
+                                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${
+                                                              subject.subject
+                                                            }</td>
+                                                            <td class="px-3 py-1 whitespace-nowrap text-sm text-right font-medium">
+                                                                <input 
+                                                                    type="number" 
+                                                                    value="${
+                                                                      subject.marks
+                                                                    }" 
+                                                                    min="0"
+                                                                    max="100"
+                                                                    class="w-16 p-1 text-right border rounded-md text-sm ${
+                                                                      subject.marks <
+                                                                      50
+                                                                        ? "text-red-500 border-red-300"
+                                                                        : "text-gray-800 border-gray-300"
+                                                                    }"
+                                                                    onblur="updateSubjectDetail('${
+                                                                      student.rollNo
+                                                                    }', ${semesterIndex}, '${
+                                                                      subject.subject
+                                                                    }', this.value)"
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    `
+                                                      )
+                                                      .join("")}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    `
+                                        : `
+                                        <div class="text-center text-gray-500 p-4 border-t mt-3">
+                                            No detailed subject marks entered for this semester.
+                                            <button 
+                                                onclick="addNewSubjectMark('${student.rollNo}', ${semesterIndex})" 
+                                                class="mt-2 px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+                                            >
+                                                Add First Subject
+                                            </button>
+                                        </div>
+                                        `
+                                    }
+                                </div>
+                            `;
+                              })
+                              .join("")}
+                            ${
+                              student.academics.length === 0
+                                ? '<div class="text-center text-gray-500 p-4 border border-dashed rounded-lg">No academic data entered yet.</div>'
+                                : ""
+                            }
+                        `;
+              break;
+            case "skills":
+              html = `
+                            <h3 class="text-xl font-semibold text-blue-700 mb-3 border-b pb-2">Technical Skills</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner mb-6">
+                                <div class="flex flex-wrap gap-2">
+                                    ${student.skills
+                                      .map(
+                                        (skill) =>
+                                          `<span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full font-medium shadow-sm">${skill}</span>`
+                                      )
+                                      .join("")}
+                                    ${
+                                      (student.skills &&
+                                        student.skills.length === 0) ||
+                                      !student.skills
+                                        ? '<p class="text-gray-500 text-sm">No skills reported.</p>'
+                                        : ""
+                                    }
+                                </div>
+                            </div>
+
+                            <h3 class="text-xl font-semibold text-blue-700 mb-3 border-b pb-2">Certifications & Proofs</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                ${student.certificates
+                                  .map(
+                                    (cert) => `
+                                    <div class="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transition hover:shadow-lg">
+                                        <div class="h-32 bg-gray-100 flex items-center justify-center overflow-hidden">
+                                            <a href="${cert.url}" target="_blank" class="block w-full h-full">
+                                                <img src="${cert.url}" 
+                                                     alt="Certificate Proof" 
+                                                     class="w-full h-full object-cover"
+                                                     onerror="this.onerror=null; this.src='https://placehold.co/400x300/e5e7eb/6b7280?text=Certificate+Proof+Image+Not+Found';"
+                                                >
+                                            </a>
+                                        </div>
+                                        <div class="p-3">
+                                            <p class="text-sm font-medium text-gray-800">${cert.title}</p>
+                                            <a href="${cert.url}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 flex items-center mt-1">
+                                                View Source
+                                                <svg class="w-3 h-3 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                `
+                                  )
+                                  .join("")}
+                                ${
+                                  student.certificates.length === 0
+                                    ? '<div class="col-span-full text-center text-gray-500 p-4">No certifications uploaded.</div>'
+                                    : ""
+                                }
+                            </div>
+                        `;
+              break;
+            case "roadmap":
+                const background = student.background || {};
+                // Estimate start year from year property (if available) or 12th year
+                const startYear = student.year ? (new Date().getFullYear() - student.year) : background.year12th; 
+                const currentYear = new Date().getFullYear();
+                const expectedGradYear = startYear ? startYear + 4 : currentYear + 1;
+
+                // Create a map to find the SPIs by semester number, not index
+                const acadMap = new Map(student.academics.map(a => [a.semester, a.spi]));
+
+
+                const roadmapItems = [];
+
+                if(background.year10th) {
+                    roadmapItems.push({
+                        year: background.year10th,
+                        title: "10th Grade Completion",
+                        school: background.school || "N/A",
+                        detail: `Score: ${background.board10th || 'N/A'}.`,
+                    });
+                }
+
+                if(background.year12th) {
+                    roadmapItems.push({
+                        year: background.year12th,
+                        title: "12th Grade Completion & College Admission",
+                        school: "RECS",
+                        detail: `Board: ${background.board12th || "N/A"}. Admission: ${background.admissionRank || "N/A"}.`,
+                    });
+                }
+                
+                // Add B.Tech Year Milestones dynamically
+                if (startYear) {
+                    for(let i = 1; i <= 4; i++) {
+                        const year = startYear + i;
+                        if (year > currentYear && i !== 4) continue; // Skip future years, except final expected graduation
+
+                        const semDetail = `(Sem ${i*2-1}: ${acadMap.get(i*2-1) ? acadMap.get(i*2-1).toFixed(1) : 'N/A'}, Sem ${i*2}: ${acadMap.get(i*2) ? acadMap.get(i*2).toFixed(1) : 'N/A'})`;
+
+                        if (i < 4) {
+                            roadmapItems.push({
+                                year: year,
+                                title: `B.Tech Year ${i} Complete`,
+                                school: "RECS",
+                                detail: `Academic Status: ${semDetail}`,
+                                isMajor: false,
+                            });
+                        } else {
+                            roadmapItems.push({
+                                year: expectedGradYear,
+                                title: "B.Tech Graduation (Project/Placement)",
+                                school: "RECS",
+                                detail: `Current CGPA: ${student.cgpa.toFixed(1)}. Status: ${student.year === 4 ? 'Final Year' : 'Pre-Graduation'}`,
+                                isMajor: true,
+                            });
+                        }
+                    }
+                }
+                
+                // Sort by year
+                roadmapItems.sort((a, b) => a.year - b.year);
+
+
+              html = `
+                            <h3 class="text-xl font-semibold text-blue-700 mb-6 border-b pb-2">Student Academic Journey Map</h3>
+                            <div id="student_data" class="bg-white p-6 rounded-xl shadow-lg roadmap-container">
+                                ${roadmapItems
+                                  .map(
+                                    (item) => `
+                                    <div class="roadmap-item">
+                                        <div class="roadmap-dot ${
+                                          item.isMajor ? "major" : ""
+                                        }"></div>
+                                        <p class="text-xs font-semibold uppercase text-gray-500">${
+                                          item.year
+                                        }</p>
+                                        <h4 class="text-lg font-bold text-gray-900 mt-1">${
+                                          item.title
+                                        }</h4>
+                                        <p class="text-sm text-gray-700 mb-1">${
+                                          item.school
+                                        }</p>
+                                        <p class="text-xs text-gray-500">${
+                                          item.detail
+                                        }</p>
+                                    </div>
+                                `
+                                  )
+                                  .join("")}
+                                ${
+                                  roadmapItems.length === 0
+                                    ? '<div class="text-center text-gray-500 p-4">No complete background data available for roadmap generation.</div>'
+                                    : ""
+                                }
+                            </div>
+                        `;
+              break;
+            case "extra":
+              html = `
+                            <h3 class="text-xl font-semibold text-blue-700 mb-3 border-b pb-2">Extra-Curricular Activities</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                                <ul class="list-disc ml-6 space-y-2 text-gray-800">
+                                    ${student.extraCurricular
+                                      .map((activity) => `<li>${activity}</li>`)
+                                      .join("")}
+                                    ${
+                                      (student.extraCurricular &&
+                                        student.extraCurricular.length === 0) ||
+                                      !student.extraCurricular
+                                        ? '<p class="text-gray-500 text-sm">No recent activities recorded.</p>'
+                                        : ""
+                                    }
+                                </ul>
+                            </div>
+                        `;
+              break;
+            case "notes":
+              // --- Mentoring Notes Tab (Now uses general updateStudentField) ---
+              html = `
+                            <h3 class="text-xl font-semibold text-red-700 mb-3 border-b pb-2">Faculty Mentoring Log (Confidential)</h3>
+                            <div class="bg-red-50 p-4 rounded-lg shadow-inner">
+                                <p class="text-sm text-red-800 mb-3">* Notes in this section are intended for Faculty Advisor/HOD use only. Changes will be saved immediately to the database.</p>
+                                <textarea
+                                    id="faculty-notes-textarea"
+                                    class="w-full h-40 p-3 border border-red-300 rounded-md shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none"
+                                    placeholder="Add confidential notes here (editable)..."
+                                    onblur="updateStudentField('${
+                                      student.rollNo
+                                    }', 'notes', this.value)"
+                                >${student.notes || ""}</textarea>
+                            </div>
+                        `;
+              break;
+          }
+          document.getElementById("modal-tab-content").innerHTML = html;
+        };
+
+        const modalProfilePhotoHtml = student.photoUrl
+          ? `<img src="${student.photoUrl}" 
+                 onerror="this.onerror=null; this.src='https://placehold.co/60x60/FFFFFF/000000?text=P';" 
+                 class="w-14 h-14 rounded-full object-cover ring-2 ring-white"
+                 alt="Student Photo"
+            />`
+          : `<svg class="w-14 h-14 text-white p-2 bg-blue-600 rounded-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+        content.innerHTML = `
+                <div class="sticky top-0 bg-blue-700 text-white p-5 rounded-t-xl flex justify-between items-center shadow-lg">
+                    <div class="flex items-center space-x-4">
+                        ${modalProfilePhotoHtml}
+                        <div>
+                            <h2 class="text-2xl font-bold">
+                                ${student.name}
+                            </h2>
+                            <p class="text-blue-200 mt-1">${
+                              student.branch
+                            } • Roll No: ${student.rollNo}</p>
+                        </div>
+                    </div>
+                    <button id="close-modal-btn" class="p-2 rounded-full hover:bg-blue-600 transition" aria-label="Close profile">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div class="border-b border-gray-200 sticky top-[80px] bg-white z-10 p-3">
+                    <nav class="flex space-x-2 overflow-x-auto" id="modal-tabs">
+                        ${tabData
+                          .map(
+                            (tab) => `
+                            <button data-tab-id="${tab.id}" class="tab-button flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                                ${tab.icon} ${tab.label}
+                            </button>
+                        `
+                          )
+                          .join("")}
+                    </nav>
+                </div>
+                <div class="p-6" id="modal-tab-content">
+                    </div>
+            `;
+
+        // Initial content load
+        renderTabContent("academic");
+        document
+          .querySelector('.tab-button[data-tab-id="academic"]')
+          .classList.replace("text-gray-600", "text-blue-700");
+        document
+          .querySelector('.tab-button[data-tab-id="academic"]')
+          .classList.add("bg-blue-100", "shadow-inner");
+
+        // Tab switching logic
+        document.querySelectorAll(".tab-button").forEach((button) => {
+          button.addEventListener("click", (e) => {
+            const tabId = e.currentTarget.getAttribute("data-tab-id");
+
+            document.querySelectorAll(".tab-button").forEach((btn) => {
+              btn.classList.replace("bg-blue-100", "hover:bg-gray-100");
+              btn.classList.replace("text-blue-700", "text-gray-600");
+              btn.classList.remove("shadow-inner");
+            });
+
+            e.currentTarget.classList.replace(
+              "hover:bg-gray-100",
+              "bg-blue-100"
+            );
+            e.currentTarget.classList.replace("text-gray-600", "text-blue-700");
+            e.currentTarget.classList.add("shadow-inner");
+
+            renderTabContent(tabId);
+          });
+        });
+
+        document
+          .getElementById("close-modal-btn")
+          .addEventListener("click", () => {
+            modal.classList.add("hidden");
+          });
+
+        modal.classList.remove("hidden");
+      };
+
+      // --- Filtering Logic ---
+      const applyFilters = () => {
+        const searchTerm = document
+          .getElementById("search-input")
+          .value.toLowerCase();
+        const filterBranch = document.getElementById("branch-filter").value;
+        const filterYear = document.getElementById("year-filter").value;
+
+        const filtered = studentsData.filter((student) => {
+          const matchesSearch =
+            student.name.toLowerCase().includes(searchTerm) ||
+            student.rollNo.toLowerCase().includes(searchTerm);
+          const matchesBranch =
+            filterBranch === "All" || student.branch === filterBranch;
+          const matchesYear =
+            filterYear === "All" || student.year.toString() === filterYear;
+
+          return matchesSearch && matchesBranch && matchesYear;
+        });
+
+        renderStudentList(filtered);
+      };
+
+      // --- Firebase Core Initialization ---
+      const initFirebase = async () => {
+        const isLocalMode = Object.keys(firebaseConfig).length === 0;
+
+        if (isLocalMode) {
+          console.log(
+            "Running in local mode: Bypassing Firebase and using mock data."
+          );
+          document.getElementById("user-id-display").textContent =
+            "LOCAL_MOCK_DATA";
+          studentsData = MOCK_STUDENTS;
+          applyFilters();
+          hideStatus();
+          return;
+        }
+
+        // --- Standard Firebase Initialization (Canvas Environment) ---
+        try {
+          const app = initializeApp(firebaseConfig);
+          db = getFirestore(app); // DB is set synchronously here.
+          auth = getAuth(app);
+
+          const authenticate = async () => {
+            try {
+              if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+              } else {
+                await signInAnonymously(auth);
+              }
+            } catch (error) {
+              console.error("Firebase Auth Error:", error);
+              document.getElementById("user-id-display").textContent =
+                "Auth Failed";
+            }
+          };
+          
+          onAuthStateChanged(auth, (user) => {
+            if (user) {
+              userId = user.uid;
+              document.getElementById("user-id-display").textContent = userId;
+              isAuthReady = true;
+              console.log("Faculty User Authenticated. UID:", userId);
+
+              setupRealtimeDataListener();
+            } else {
+              // Fallback/anonymous user handling
+              userId = crypto.randomUUID();
+              document.getElementById("user-id-display").textContent =
+                "ANON-" + userId.substring(0, 8);
+              isAuthReady = true;
+              console.log("Signed in anonymously or Auth listener ran.");
+
+              setupRealtimeDataListener();
+            }
+          });
+
+          await authenticate();
+        } catch (e) {
+          console.error("Firebase Initialization Error:", e);
+          showStatus(
+            "Error initializing the application. Check console for details.",
+            false
+          );
+        }
+      };
+
+      // --- Real-time Data Listener ---
+      const setupRealtimeDataListener = async () => {
+        if (!isAuthReady || !db) return;
+
+        // Step 1: Attempt to seed data if the collection is empty (This ensures demo students are visible)
+        await seedData();
+
+        // Step 2: Setup the real-time listener for all public data
+        showStatus("Fetching student records...", true);
+
+        const q = query(getCollectionPath());
+
+        onSnapshot(
+          q,
+          (snapshot) => {
+            studentsData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            console.log(
+              `Fetched ${studentsData.length} student records in real-time.`
+            );
+
+            if (studentsData.length === 0) {
+              showStatus("No students found in the database.", false);
+            } else {
+              applyFilters();
+            }
+          },
+          (error) => {
+            console.error(
+              "Firestore Real-time Fetch Error (Permissions Likely):",
+              error
+            );
+            showAlertModal(
+              "Fetch Error",
+              "Failed to load real-time student data. Check public read security rules."
+            );
+          }
+        );
+      };
+
+      // --- Event Listeners Setup ---
+      window.onload = () => {
+        // Initialize Firebase and start the app
+        initFirebase();
+
+        // Setup listeners for search and filter changes
+        document
+          .getElementById("search-input")
+          .addEventListener("input", applyFilters);
+        document
+          .getElementById("branch-filter")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("year-filter")
+          .addEventListener("change", applyFilters);
+      };
+    </script>
+  </body>
+</html>
